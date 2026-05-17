@@ -1,3 +1,3 @@
 # InnovateR
 
-Glanbia Performance Nutrition — Innovation Platform
+Glanbia — Innovation Platform
