@@ -140,12 +140,12 @@ export default function Home() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3.5rem', flexWrap: 'wrap' as const }}>
           {[
-            { src: '/logos/glanbia.png', alt: 'Glanbia' },
-            { src: '/logos/anthropic.png', alt: 'Anthropic' },
-            { src: '/logos/consensus.png', alt: 'Consensus' },
-            { src: '/logos/bloomfire.png', alt: 'Bloomfire' },
-            { src: '/logos/niq.png', alt: 'NIQ' },
-            { src: '/logos/azure.png', alt: 'Azure' },
+            { src: '/glanbia.png', alt: 'Glanbia' },
+            { src: '/anthropic.png', alt: 'Anthropic' },
+            { src: '/consensus.png', alt: 'Consensus' },
+            { src: '/bloomfire.png', alt: 'Bloomfire' },
+            { src: '/niq.png', alt: 'NIQ' },
+            { src: '/azure.png', alt: 'Azure' },
           ].map(logo => (
             <div key={logo.alt} style={{ opacity: 0.4, filter: 'grayscale(100%) brightness(10)' }}>
               <img src={logo.src} alt={logo.alt} style={{ height: '26px', width: 'auto', objectFit: 'contain' as const }} />
