@@ -135,18 +135,19 @@ export default function Home() {
 
       {/* Integration logos */}
       <section style={{ padding: '0 2.5rem 4rem' }}>
-        <div style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.2)', marginBottom: '1.75rem', textAlign: 'center' as const }}>
-          Integrates with
+        <div style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.2)', marginBottom: '2rem', textAlign: 'center' as const }}>
+          Built by Glanbia &nbsp;·&nbsp; Powered by
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3.5rem', flexWrap: 'wrap' as const }}>
           {[
+            { src: '/logos/glanbia.png', alt: 'Glanbia' },
             { src: '/logos/anthropic.png', alt: 'Anthropic' },
             { src: '/logos/consensus.png', alt: 'Consensus' },
             { src: '/logos/bloomfire.png', alt: 'Bloomfire' },
             { src: '/logos/niq.png', alt: 'NIQ' },
             { src: '/logos/azure.png', alt: 'Azure' },
           ].map(logo => (
-            <div key={logo.alt} style={{ opacity: 0.45, filter: 'grayscale(100%) brightness(10)', transition: 'opacity 0.2s' }}>
+            <div key={logo.alt} style={{ opacity: 0.4, filter: 'grayscale(100%) brightness(10)' }}>
               <img src={logo.src} alt={logo.alt} style={{ height: '26px', width: 'auto', objectFit: 'contain' as const }} />
             </div>
           ))}
