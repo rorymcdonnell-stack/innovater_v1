@@ -133,23 +133,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Integration logos */}
+      {/* Integration wordmarks */}
       <section style={{ padding: '0 2.5rem 4rem' }}>
         <div style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.2)', marginBottom: '2rem', textAlign: 'center' as const }}>
           Built by Glanbia &nbsp;·&nbsp; Powered by
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3.5rem', flexWrap: 'wrap' as const }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap' as const }}>
           {[
-            { src: '/glanbia.png', alt: 'Glanbia' },
-            { src: '/anthropic.png', alt: 'Anthropic' },
-            { src: '/consensus.png', alt: 'Consensus' },
-            { src: '/bloomfire.png', alt: 'Bloomfire' },
-            { src: '/niq.png', alt: 'NIQ' },
-            { src: '/azure.png', alt: 'Azure' },
-          ].map(logo => (
-            <div key={logo.alt} style={{ opacity: 0.35, filter: 'grayscale(1) contrast(0) brightness(2)' }}>
-              <img src={logo.src} alt={logo.alt} style={{ height: '26px', width: 'auto', objectFit: 'contain' as const }} />
-            </div>
+            { name: 'Glanbia', weight: '700' },
+            { name: 'Anthropic', weight: '400' },
+            { name: 'Consensus', weight: '400' },
+            { name: 'Bloomfire', weight: '400' },
+            { name: 'NIQ', weight: '700' },
+            { name: 'Azure', weight: '400' },
+          ].map(w => (
+            <span key={w.name} style={{
+              fontSize: '14px',
+              fontWeight: w.weight,
+              color: 'rgba(255,255,255,0.25)',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase' as const,
+            }}>{w.name}</span>
           ))}
         </div>
       </section>
