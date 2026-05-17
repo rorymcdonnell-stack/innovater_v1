@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { codaData, CategorySegment } from './coda-data'
-import { formatCOGS, financialParams, launchInvestment, channelCosts } from './financial-params'
+import { formatCOGS, financialParams, launchInvestment } from './financial-params'
 
 const client = new Anthropic()
 
@@ -17,15 +17,14 @@ export interface SizingInput {
   launchHorizon: '12 months' | '24 months' | '36 months'
   keyRTBs?: string[]
   scienceConfidenceScore?: number
-  // Imported from ConceptR
   fromConceptR?: boolean
   conceptStrengthScore?: number
   strategicRationale?: string
 }
 
 export interface SizingOutput {
-  tam: number           // $000s total addressable market
-  sam: number           // $000s serviceable addressable market
+  tam: number
+  sam: number
   som: {
     conservative: number
     base: number
@@ -47,7 +46,7 @@ export interface SizingOutput {
     base: number
     optimistic: number
   }
-  commercialConfidenceScore: number   // 0-100
+  commercialConfidenceScore: number
   recommendation: 'Go' | 'Watch' | 'Hold'
   recommendationRationale: string
   keyOpportunities: string[]
@@ -64,8 +63,6 @@ export interface SizingOutput {
 function findBestSegment(input: SizingInput): CategorySegment | undefined {
   const lower = (s: string) => s.toLowerCase()
   const terms = [input.category, input.segment].map(lower)
-
-  // Direct match on category/segment
   let match = codaData.find(d =>
     terms.some(t =>
       lower(d.category).includes(t) ||
@@ -74,26 +71,29 @@ function findBestSegment(input: SizingInput): CategorySegment | undefined {
       t.includes(lower(d.segment))
     )
   )
-
-  // Format-based fallback
   if (!match) {
     match = codaData.find(d => {
-      const dominantFormat = Object.entries(d.formatSplit).sort((a, b) => b[1] - a[1])[0][0]
-      return lower(dominantFormat) === lower(input.format)
+      const dominant = Object.entries(d.formatSplit).sort((a, b) => b[1] - a[1])[0][0]
+      return lower(dominant) === lower(input.format)
     })
   }
-
-  // Default to whey protein powder as the base reference
   return match || codaData[0]
 }
 
-function getFormatCOGS(format: string, tier: string) {
+function getFormatData(format: string, tier: string) {
   const f = formatCOGS.find(f => f.format === format) || formatCOGS[0]
-  const tierKey = tier.toLowerCase().replace(' ', '') as keyof typeof f.cogsPerUnit
-  const safeKey = (tierKey === 'superpremium' ? 'superPremium' : tierKey) as keyof typeof f.cogsPerUnit
+  // Map tier string to object key safely
+  const tierMap: Record<string, 'budget' | 'mid' | 'premium' | 'superPremium'> = {
+    'budget': 'budget',
+    'mid': 'mid',
+    'premium': 'premium',
+    'super premium': 'superPremium',
+    'superpremium': 'superPremium',
+  }
+  const key = tierMap[tier.toLowerCase()] || 'mid'
   return {
-    cogs: f.cogsPerUnit[safeKey] || f.cogsPerUnit.mid,
-    price: f.typicalRetailPrice[safeKey] || f.typicalRetailPrice.mid,
+    cogs: f.cogsPerUnit[key],
+    price: f.typicalRetailPrice[key],
     unitsPerCase: f.unitsPerCase,
   }
 }
@@ -111,9 +111,8 @@ function getLaunchInvestment(distribution: string) {
 
 export async function generateSizing(input: SizingInput): Promise<SizingOutput> {
   const segment = findBestSegment(input)
-  const formatData = getFormatCOGS(input.format, input.priceTier)
+  const formatData = getFormatData(input.format, input.priceTier)
   const launch = getLaunchInvestment(input.distributionAmbition)
-
   const gpnShare = segment?.gpnBrands.reduce((sum, b) => sum + b.shareOfSegment, 0) || 0
 
   const systemPrompt = `You are SizeR, the commercial intelligence engine within InnovateR — Glanbia Performance Nutrition's AI-powered innovation platform.
@@ -126,7 +125,7 @@ CODA segment data for this concept:
 ${segment ? JSON.stringify(segment, null, 2) : 'No exact match — use closest category reasoning'}
 
 Format COGS benchmarks:
-${JSON.stringify(getFormatCOGS(input.format, input.priceTier), null, 2)}
+${JSON.stringify(formatData, null, 2)}
 
 GPN Financial Parameters (demo):
 - Gross margin target: ${financialParams.grossMarginTarget}%
@@ -137,18 +136,18 @@ GPN Financial Parameters (demo):
 Launch investment range for ${input.distributionAmbition}: $${launch.minUSD.toLocaleString()} - $${launch.maxUSD.toLocaleString()}
 
 Sizing methodology:
-1. TAM = Total category/segment retail value (from CODA) × geo adjustment
-2. SAM = TAM × realistic channel reach for this distribution ambition
-3. SOM = SAM × realistic share capture (conservative/base/optimistic) based on competitive intensity, GPN existing presence, and concept strength
+1. TAM = Total category/segment retail value (from CODA) x geo adjustment — return as number in $000s
+2. SAM = TAM x realistic channel reach for this distribution ambition
+3. SOM = SAM x realistic share capture (conservative/base/optimistic)
 4. Revenue projections = SOM achieved progressively over 3 years
-5. Gross margin = retail price - COGS - trade spend
-6. Payback = launch investment / annual gross profit
+5. Gross margin = retail price - COGS - trade spend (return as percentage number e.g. 42)
+6. Payback = launch investment / annual gross profit (return as integer months)
 
 Scoring:
-- Commercial confidence score (0-100): weight segment growth rate (25%), GPN existing presence (20%), competitive white space (20%), format/channel fit (15%), price tier opportunity (20%)
+- Commercial confidence score (0-100)
 - Go (score 65+), Watch (40-64), Hold (<40)
 
-Be rigorous but realistic. GPN is a large player — reflect realistic share capture, not aspirational. Flag genuine risks.`
+All financial values must be numbers in $000s USD. grossMargin values are percentages (e.g. 42 not 0.42). paybackMonths are integers.`
 
   const userPrompt = `Generate a commercial sizing analysis for this concept:
 
@@ -162,12 +161,11 @@ Target Consumer: ${input.targetConsumer}
 Distribution: ${input.distributionAmbition}
 Geographies: ${input.geographies.join(', ')}
 Launch Horizon: ${input.launchHorizon}
-${input.keyRTBs ? `Key RTBs: ${input.keyRTBs.join(', ')}` : ''}
+${input.keyRTBs?.length ? `Key RTBs: ${input.keyRTBs.join(', ')}` : ''}
 ${input.scienceConfidenceScore ? `Science Confidence Score (from ConceptR): ${input.scienceConfidenceScore}/100` : ''}
-${input.conceptStrengthScore ? `Concept Strength Score (from ConceptR): ${input.conceptStrengthScore}/100` : ''}
 ${input.strategicRationale ? `Strategic Rationale: ${input.strategicRationale}` : ''}
 
-Return a complete SizingOutput JSON object. All financial values in $000s USD. Be specific and data-grounded.`
+Return a complete JSON object matching the SizingOutput interface exactly.`
 
   try {
     const response = await client.messages.create({
