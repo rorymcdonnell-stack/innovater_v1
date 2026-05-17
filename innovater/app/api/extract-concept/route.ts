@@ -11,41 +11,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No PDF provided' }, { status: 400 })
     }
 
+    // Decode base64 and extract readable text
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64')
+    const pdfText = pdfBuffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ').trim()
+
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 2000,
       messages: [
         {
           role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: pdfBase64,
-              },
-            },
-            {
-              type: 'text',
-              text: `Extract the following information from this ConceptR product concept PDF and return ONLY valid JSON with no preamble or markdown.
+          content: `You are extracting product concept data from a ConceptR PDF export for Glanbia Performance Nutrition.
 
-Extract these fields:
-- conceptName: string (the product name)
-- tagline: string (the concept tagline or positioning line)
-- category: string (e.g. "Sports Nutrition", "Wellness", "Better-for-You Snacks")
-- segment: string (e.g. "Protein Supplements", "Recovery", "Cognitive Health")
-- targetConsumer: string (who the product is for)
-- strategicRationale: string (why this concept exists, what gap it fills)
-- keyRTBs: string[] (reasons to believe — list of claims or proof points)
-- scienceConfidenceScore: number | null (the science confidence score if present, 0-100)
-- conceptStrengthScore: number | null (the concept strength score if present, 0-100)
-- format: one of "Powder" | "RTD" | "Bar" | "Capsule" | "Gummy" (infer from ingredients or format mentions)
-- priceTier: one of "Budget" | "Mid" | "Premium" | "Super Premium" (infer from positioning)
+Here is the raw text content extracted from the PDF:
 
-If a field is not clearly present in the document, make a reasonable inference from context. Return valid JSON only.`,
-            },
-          ],
+<pdf_content>
+${pdfText.slice(0, 8000)}
+</pdf_content>
+
+Extract the following information and return ONLY valid JSON with no preamble, no markdown, no backticks:
+
+{
+  "conceptName": "the product name",
+  "tagline": "the concept tagline or positioning line",
+  "category": "e.g. Sports Nutrition, Wellness, Better-for-You Snacks",
+  "segment": "e.g. Protein Supplements, Recovery, Cognitive Health",
+  "targetConsumer": "who the product is for",
+  "strategicRationale": "why this concept exists and what gap it fills",
+  "keyRTBs": ["reason to believe 1", "reason to believe 2"],
+  "scienceConfidenceScore": 82,
+  "conceptStrengthScore": null,
+  "format": "Powder",
+  "priceTier": "Premium"
+}
+
+Rules:
+- format must be one of: Powder, RTD, Bar, Capsule, Gummy — infer from context
+- priceTier must be one of: Budget, Mid, Premium, Super Premium — infer from positioning
+- scienceConfidenceScore and conceptStrengthScore are numbers 0-100 or null if not found
+- keyRTBs should be an array of 3-6 short strings
+- If a field is not present, make a reasonable inference from context
+- Return valid JSON only — no other text`,
         },
       ],
     })
