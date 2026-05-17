@@ -29,29 +29,30 @@ Here is the raw text content extracted from the PDF:
 ${pdfText.slice(0, 8000)}
 </pdf_content>
 
-Extract the following information and return ONLY valid JSON with no preamble, no markdown, no backticks:
+Read the PDF carefully and extract the following. Pay close attention to what the product ACTUALLY is — do not default to sports nutrition if it is clearly a different category (e.g. kids snacks, wellness, plant-based).
+
+Return ONLY valid JSON with no preamble, no markdown, no backticks:
 
 {
-  "conceptName": "the product name",
-  "tagline": "the concept tagline or positioning line",
-  "category": "e.g. Sports Nutrition, Wellness, Better-for-You Snacks",
-  "segment": "e.g. Protein Supplements, Recovery, Cognitive Health",
-  "targetConsumer": "who the product is for",
-  "strategicRationale": "why this concept exists and what gap it fills",
-  "keyRTBs": ["reason to believe 1", "reason to believe 2"],
-  "scienceConfidenceScore": 82,
-  "conceptStrengthScore": null,
-  "format": "Powder",
-  "priceTier": "Premium"
+  "conceptName": "the exact product name as it appears in the PDF",
+  "tagline": "the tagline or positioning line",
+  "category": "the most accurate category — e.g. Better-for-You Snacks, Kids Nutrition, Sports Nutrition, Wellness, Plant-Based — infer carefully from the product description and target consumer",
+  "segment": "the specific segment — e.g. Kids Snack Bars, Protein Bars, Recovery, Cognitive Health — infer from the product",
+  "targetConsumer": "copy the target consumer description from the PDF",
+  "strategicRationale": "summarise the strategic rationale in 1-2 sentences",
+  "keyRTBs": ["RTB 1", "RTB 2", "RTB 3"],
+  "scienceConfidenceScore": 76,
+  "conceptStrengthScore": 82,
+  "format": "one of: Powder, RTD, Bar, Capsule, Gummy — read this directly from the PDF header or product description",
+  "priceTier": "one of: Budget, Mid, Premium, Super Premium — read this directly from the PDF (Mid-range = Mid)"
 }
 
-Rules:
-- format must be one of: Powder, RTD, Bar, Capsule, Gummy — infer from context
-- priceTier must be one of: Budget, Mid, Premium, Super Premium — infer from positioning
-- scienceConfidenceScore and conceptStrengthScore are numbers 0-100 or null if not found
-- keyRTBs should be an array of 3-6 short strings
-- If a field is not present, make a reasonable inference from context
-- Return valid JSON only — no other text`,
+CRITICAL RULES:
+- format: look for explicit labels like 'Bar', 'Powder', 'RTD' in the PDF header — do NOT guess
+- priceTier: look for 'Mid-range', 'Premium', 'Budget' labels — Mid-range maps to Mid
+- category: if the target consumer is parents/kids, this is Kids Nutrition or Better-for-You Snacks, NOT Sports Nutrition
+- scienceConfidenceScore and conceptStrengthScore: look for the numerical scores in the PDF (e.g. 82/100, 76/100)
+- Return valid JSON only`,
         },
       ],
     })
