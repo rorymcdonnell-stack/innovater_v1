@@ -184,6 +184,29 @@ Return a complete JSON object matching the SizingOutput interface exactly.`
       .trim()
 
     const parsed = JSON.parse(text) as SizingOutput
+
+    // Normalise — handle cases where Claude returns flat fields instead of nested
+    if (!parsed.som && (parsed as any).somConservative) {
+      parsed.som = {
+        conservative: (parsed as any).somConservative,
+        base: (parsed as any).somBase,
+        optimistic: (parsed as any).somOptimistic,
+      }
+    }
+    if (!parsed.som) parsed.som = { conservative: 0, base: 0, optimistic: 0 }
+    if (!parsed.revenueProjections) parsed.revenueProjections = {
+      year1: { conservative: 0, base: 0, optimistic: 0 },
+      year2: { conservative: 0, base: 0, optimistic: 0 },
+      year3: { conservative: 0, base: 0, optimistic: 0 },
+    }
+    if (!parsed.grossMargin) parsed.grossMargin = { conservative: 35, base: 40, optimistic: 45 }
+    if (!parsed.paybackMonths) parsed.paybackMonths = { conservative: 36, base: 24, optimistic: 18 }
+    if (!parsed.launchInvestmentRange) parsed.launchInvestmentRange = { min: 400, max: 1200, label: 'Specialty retail launch' }
+    if (!parsed.keyOpportunities) parsed.keyOpportunities = []
+    if (!parsed.keyRisks) parsed.keyRisks = []
+    if (!parsed.recommendation) parsed.recommendation = 'Watch'
+    if (!parsed.commercialConfidenceScore) parsed.commercialConfidenceScore = 50
+
     parsed.codaSegmentUsed = segment?.subSegment || 'General category estimate'
     parsed.gpnShareInSegment = gpnShare
     parsed.segmentGrowthRate = segment?.yoyGrowthValue || 8.0
