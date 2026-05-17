@@ -122,7 +122,9 @@ export default function SizerPage() {
 
   const recColor = result?.recommendation === 'Go' ? SPRING : result?.recommendation === 'Watch' ? GLEAM : '#F87171'
 
-  function fmt(n: number) {
+  function fmt(val: number | string | undefined | null) {
+    const n = Number(val)
+    if (isNaN(n) || n === 0) return '$—'
     if (n >= 1000000) return `$${(n / 1000000).toFixed(1)}B`
     if (n >= 1000) return `$${(n / 1000).toFixed(1)}M`
     return `$${n.toFixed(0)}K`
