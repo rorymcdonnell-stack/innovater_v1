@@ -147,7 +147,7 @@ export default function Home() {
             { src: '/niq.png', alt: 'NIQ' },
             { src: '/azure.png', alt: 'Azure' },
           ].map(logo => (
-            <div key={logo.alt} style={{ opacity: 0.7 }}>
+            <div key={logo.alt} style={{ opacity: 0.35, filter: 'grayscale(1) contrast(0) brightness(2)' }}>
               <img src={logo.src} alt={logo.alt} style={{ height: '26px', width: 'auto', objectFit: 'contain' as const }} />
             </div>
           ))}
